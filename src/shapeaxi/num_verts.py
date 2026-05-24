@@ -5,11 +5,20 @@ import pandas as pd
 from shapeaxi.saxi_dataset import SaxiDataset 
 
 
-def main(args):
-    
-    
+def get_argparse():
+    parser = argparse.ArgumentParser(description='Count vertices and faces for each mesh in a CSV')
+    parser.add_argument('--csv', type=str, help='path to the csv file', required=True)
+    parser.add_argument('--mount_point', type=str, help='path to the mount point', default="./")
+    parser.add_argument('--out', type=str, help='path to the output', default="out.csv")
+    return parser
+
+
+def main(args=None):
+    if args is None:
+        args = get_argparse().parse_args()
+
     df = pd.read_csv(args.csv)
-    
+
     ds = SaxiDataset(df, mount_point=args.mount_point, batch_size=1, num_workers=0, surf_column="surf_path", CN=False)
 
     v_num = []
@@ -22,10 +31,6 @@ def main(args):
     df["num_faces"] = f_num
     df.to_csv(args.out, index=False)
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='ShapeAxis training')
-    parser.add_argument('--csv', type=str, help='path to the csv file')
-    parser.add_argument('--mount_point', type=str, help='path to the mount point', default="./")
-    parser.add_argument('--out', type=str, help='path to the output', default="out.csv")
-    args = parser.parse_args()
-    main(args)
+    main()

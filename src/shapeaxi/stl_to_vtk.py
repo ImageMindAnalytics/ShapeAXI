@@ -23,7 +23,11 @@ def get_argparse():
     parser.add_argument('--out', type=str, help='Output', default="out.vtk")
     return parser
 
-if __name__ == '__main__':
-    parser = get_argparse()
-    args = parser.parse_args()
+def main(args=None):
+    if args is None:
+        args = get_argparse().parse_args()
     convert_stl_to_vtk(args.surf, args.out)
+
+
+if __name__ == '__main__':
+    main()

@@ -5,6 +5,8 @@ build-backend = "hatchling.build"
 [project.scripts]
 shapeaxi = "shapeaxi.saxi_folds:cml"
 dentalmodelseg = "shapeaxi.dental_model_seg:cml"
+stltovtk = "shapeaxi.stl_to_vtk:main"
+numverts = "shapeaxi.num_verts:main"
 
 [project]
 name = "shapeaxi"
