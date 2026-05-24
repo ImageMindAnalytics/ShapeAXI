@@ -28,29 +28,26 @@ Welcome to the official documentation for **ShapeAXI**. Dive into the cutting-ed
 
 ## Installation
 
-(python 3.8 or 3.9 are required, no other versions)
+Python 3.10–3.13. ShapeAXI's only awkward dependency is PyTorch3D, which we
+serve as prebuilt wheels from a separate index — so the install is one
+command:
 
-### Installation of shapeaxi
 ```bash
-pip install shapeaxi
+conda create -n shapeaxi python=3.11
+conda activate shapeaxi
+pip install shapeaxi \
+  --extra-index-url https://ImageMindAnalytics.github.io/pytorch3d-wheels/simple/
 ```
 
-### Installation of pytorch3d 
+The `--extra-index-url` flag lets pip pick up the matching PyTorch3D wheel
+for your platform + torch + CUDA combo. Supported combinations (Python
+3.10–3.13) are listed at
+[ImageMindAnalytics/pytorch3d-wheels](https://github.com/ImageMindAnalytics/pytorch3d-wheels).
 
-For this installation, we are going to use a variable, **{YOURVERSION}**, because this installation is specific to each computer configuration.
-First, you can run this line to print the content of the variable **{YOURVERSION}** that we will use :
-```bash
-python -c "import sys; import torch; pyt_version_str=torch.__version__.split('+')[0].replace('.', ''); version_str=''.join([f'py3{sys.version_info.minor}_cu', torch.version.cuda.replace('.', ''), f'_pyt{pyt_version_str}']); print(version_str)"
-```
-It will print something like this : **py39_cu117_pyt201**.  
-- Finally, you can run this line by adding your editing **{YOURVERSION}**, 
-```bash
-pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/{YOURVERSION}/download.html
-```
+If you'd rather not pass the flag each time, set it once in your shell:
 
-Finally, check the installation,
 ```bash
-pip show pytorch3d
+export PIP_EXTRA_INDEX_URL=https://ImageMindAnalytics.github.io/pytorch3d-wheels/simple/
 ```
 ---
 
