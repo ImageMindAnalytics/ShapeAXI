@@ -289,6 +289,98 @@ def SaxiFreesurfer_predict(args, mount_point, df, fname, ext, model):
         print(bcolors.SUCCESS, f"Saving results to {out_name}", bcolors.ENDC)
 
 
+def SaxiMHAClassification_predict(args, mount_point, df, fname, ext, model):
+    model.eval()
+
+    scale_factor = None
+    if hasattr(model.hparams, 'scale_factor'):
+        scale_factor = model.hparams.scale_factor
+
+    test_ds = SaxiDataset(df, transform=EvalTransform(scale_factor), CN=True,
+                          surf_column=model.hparams.surf_column,
+                          class_column=model.hparams.class_column,
+                          scalar_column=model.hparams.scalar_column,
+                          **vars(args))
+    test_loader = DataLoader(test_ds, batch_size=1, num_workers=args.num_workers, pin_memory=True)
+
+    with torch.no_grad():
+        probs = []
+        predictions = []
+        softmax = nn.Softmax(dim=1)
+
+        for idx, (V, F, CN, L) in tqdm(enumerate(test_loader), total=len(test_loader)):
+            V = V.cuda(non_blocking=True)
+            F = F.cuda(non_blocking=True)
+            CN = CN.cuda(non_blocking=True)
+
+            X_mesh = model.create_mesh(V, F, CN)
+            x, x_w, X = model(X_mesh)
+            x = softmax(x).detach()
+            probs.append(x)
+            predictions.append(torch.argmax(x, dim=1, keepdim=True))
+
+        probs = torch.cat(probs).detach().cpu().numpy()
+        predictions = torch.cat(predictions).cpu().numpy().squeeze()
+
+        out_dir = os.path.join(args.out, os.path.basename(args.model))
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+
+        out_probs = os.path.join(out_dir, fname.replace(ext, "_probs.pickle"))
+        pickle.dump(probs, open(out_probs, 'wb'))
+
+        df['pred'] = predictions
+        if ext == ".csv":
+            out_name = os.path.join(out_dir, fname.replace(ext, "_prediction.csv"))
+            df.to_csv(out_name, index=False)
+        else:
+            out_name = os.path.join(out_dir, fname.replace(ext, "_prediction.parquet"))
+            df.to_parquet(out_name, index=False)
+        print(bcolors.SUCCESS, f"Saving results to {out_name}", bcolors.ENDC)
+
+
+def SaxiMHARegression_predict(args, mount_point, df, fname, ext, model):
+    model.eval()
+
+    scale_factor = None
+    if hasattr(model.hparams, 'scale_factor'):
+        scale_factor = model.hparams.scale_factor
+
+    test_ds = SaxiDataset(df, transform=EvalTransform(scale_factor), CN=True,
+                          surf_column=model.hparams.surf_column,
+                          class_column=model.hparams.class_column,
+                          scalar_column=model.hparams.scalar_column,
+                          **vars(args))
+    test_loader = DataLoader(test_ds, batch_size=1, num_workers=args.num_workers, pin_memory=True)
+
+    with torch.no_grad():
+        predictions = []
+
+        for idx, (V, F, CN, L) in tqdm(enumerate(test_loader), total=len(test_loader)):
+            V = V.cuda(non_blocking=True)
+            F = F.cuda(non_blocking=True)
+            CN = CN.cuda(non_blocking=True)
+
+            X_mesh = model.create_mesh(V, F, CN)
+            x, x_w, X = model(X_mesh)
+            predictions.append(x.detach())
+
+        predictions = torch.cat(predictions).cpu().squeeze().numpy()
+
+        out_dir = os.path.join(args.out, os.path.basename(args.model))
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+
+        df['pred'] = predictions
+        if ext == ".csv":
+            out_name = os.path.join(out_dir, fname.replace(ext, "_prediction.csv"))
+            df.to_csv(out_name, index=False)
+        else:
+            out_name = os.path.join(out_dir, fname.replace(ext, "_prediction.parquet"))
+            df.to_parquet(out_name, index=False)
+        print(bcolors.SUCCESS, f"Saving results to {out_name}", bcolors.ENDC)
+
+
 def SaxiFreedurferMT_predict(args, mount_point, df, fname, ext, model):
     model.eval()
     test_ds = SaxiFreesurferDataset(df,transform=UnitSurfTransform(),name_class=args.class_column,freesurfer_path=args.fs_path)
@@ -376,6 +468,11 @@ def main(args):
         "SaxiMHA": SaxiFreesurfer_predict,
         "SaxiRing_QC": SaxiFreesurfer_predict,
         "SaxiRingMT": SaxiFreedurferMT_predict,
+        "SaxiMHAClassification": SaxiMHAClassification_predict,
+        "SaxiMHAFBClassification": SaxiMHAClassification_predict,
+        "SaxiMHAClassificationSingle": SaxiMHAClassification_predict,
+        "SaxiMHAFBRegression": SaxiMHARegression_predict,
+        "SaxiMHAFBRegression_V": SaxiMHARegression_predict,
     }
     
     # Get the prediction function
@@ -394,7 +491,7 @@ def get_argparse():
     ##Trained
     model_group = parser.add_argument_group('Trained')
     model_group.add_argument('--model', type=str, help='Model for prediction', required=True)
-    model_group.add_argument('--nn', type=str, help='Neural network name : SaxiClassification, SaxiRegression, SaxiSegmentation, SaxiIcoClassification, SaxiRing, SaxiRingMT, SaxiRingClassification', required=True, choices=["SaxiClassification", "SaxiRegression", "SaxiSegmentation", "SaxiIcoClassification", "SaxiIcoClassification_fs", 'SaxiRing', 'SaxiRingClassification', 'SaxiRingMT', 'SaxiMHA', 'SaxiRing_QC'])
+    model_group.add_argument('--nn', type=str, help='Neural network name', required=True, choices=["SaxiClassification", "SaxiRegression", "SaxiSegmentation", "SaxiIcoClassification", "SaxiIcoClassification_fs", 'SaxiRing', 'SaxiRingClassification', 'SaxiRingMT', 'SaxiMHA', 'SaxiRing_QC', 'SaxiMHAClassification', 'SaxiMHAFBClassification', 'SaxiMHAClassificationSingle', 'SaxiMHAFBRegression', 'SaxiMHAFBRegression_V'])
 
     ##Input
     input_group = parser.add_argument_group('Input')
