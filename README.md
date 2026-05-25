@@ -288,9 +288,9 @@ shapeaxi --csv your_data.csv --nn SaxiRingTeeth --epochs 40 --folds 5 --mount_po
 
 In **ShapeAXI**, we prioritize transparency and understanding. The explainability feature of our framework offers heat-maps which grant insights into its classification rationale.
 
-https://github.com/DCBIA-OrthoLab/ShapeAXI/assets/7086191/120b0095-5f2d-4f0d-b650-a0587a33e067
+https://github.com/ImageMindAnalytics/ShapeAXI/assets/7086191/120b0095-5f2d-4f0d-b650-a0587a33e067
 
-https://github.com/DCBIA-OrthoLab/ShapeAXI/assets/7086191/2c635250-624f-4cce-b150-4d5507b398b4
+https://github.com/ImageMindAnalytics/ShapeAXI/assets/7086191/2c635250-624f-4cce-b150-4d5507b398b4
 
 ---
 

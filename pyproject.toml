@@ -70,7 +70,7 @@ dependencies = [
 ]
 
 [project.urls]
-"Source Code" = "https://github.com/DCBIA-OrthoLab/ShapeAXI/"
+"Source Code" = "https://github.com/ImageMindAnalytics/ShapeAXI/"
 
 [tool.hatch.version]
 path = "src/shapeaxi/__about__.py"
