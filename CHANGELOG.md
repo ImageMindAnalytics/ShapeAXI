@@ -4,6 +4,14 @@ All notable changes to ShapeAXI are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-05-25
+
+### Fixed
+- Removed the `grants` block from `.zenodo.json`. The NIH grants were not in
+  Zenodo's awards index, which caused the InvenioRDM validator to reject the
+  release deposit. Funding will be added through the Zenodo UI on the existing
+  DOI record (edits do not change the minted DOI).
+
 ## [2.0.1] - 2026-05-25
 
 ### Added

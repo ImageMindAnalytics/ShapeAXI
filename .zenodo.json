@@ -33,15 +33,5 @@
       "relation": "isSupplementTo",
       "resource_type": "software"
     }
-  ],
-  "grants": [{
-    "id": "R01EB021391"
-  },
-  {
-    "id": "R01DE024450"
-  },
-  {
-    "id": "R01DE024450"
-  }
-]
+  ]
 }
