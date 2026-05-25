@@ -513,10 +513,14 @@ def get_argparse():
     return parser
 
 
-if __name__ == '__main__':
+def cml():
     parser = get_argparse()
     initial_args, unknownargs = parser.parse_known_args()
     model_args = getattr(saxi_nets, initial_args.nn)
     model_args.add_model_specific_args(parser)
     args = parser.parse_args()
     main(args)
+
+
+if __name__ == '__main__':
+    cml()

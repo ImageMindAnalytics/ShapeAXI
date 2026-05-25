@@ -216,9 +216,13 @@ def get_argparse():
     return parser
     
 
-if __name__ == '__main__':
+def cml():
     parser = get_argparse()
     args = parser.parse_args()
     first_split_data(args)
     split_data_folds_test_train(args)
     split_data_folds_train_eval(args)
+
+
+if __name__ == '__main__':
+    cml()

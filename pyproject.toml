@@ -3,7 +3,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-shapeaxi = "shapeaxi.saxi_folds:cml"
+saxi_folds = "shapeaxi.saxi_folds:cml"
+saxi_train = "shapeaxi.saxi_train:cml"
+saxi_predict = "shapeaxi.saxi_predict:cml"
+saxi_eval = "shapeaxi.saxi_eval:cml"
+saxi_gradcam = "shapeaxi.saxi_gradcam:cml"
+split_train_eval = "shapeaxi.split_train_eval:cml"
 dentalmodelseg = "shapeaxi.dental_model_seg:cml"
 stltovtk = "shapeaxi.stl_to_vtk:main"
 numverts = "shapeaxi.num_verts:main"
@@ -39,6 +44,7 @@ dependencies = [
   "torchmetrics",
   "pytorch3d",
   "lightning>=2.0",
+  "mlflow>=2.9",
   "monai>=1.2",
   "monai-generative",
   "diffusers",

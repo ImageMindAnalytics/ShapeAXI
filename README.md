@@ -69,7 +69,7 @@ usage: shapeaxi [-h] [--csv CSV] [--csv_train CSV_TRAIN] [--csv_test CSV_TEST] [
                 [--surf_column SURF_COLUMN] [--class_column CLASS_COLUMN] [--scale_factor SCALE_FACTOR] [--column_scale_factor COLUMN_SCALE_FACTOR] [--profiler PROFILER]
                 [--compute_scale_factor COMPUTE_SCALE_FACTOR] [--compute_features COMPUTE_FEATURES] [--mount_point MOUNT_POINT] [--num_workers NUM_WORKERS] [--base_encoder BASE_ENCODER]
                 [--base_encoder_params BASE_ENCODER_PARAMS] [--hidden_dim HIDDEN_DIM] [--radius RADIUS] [--image_size IMAGE_SIZE] [--lr LR] [--epochs EPOCHS] [--batch_size BATCH_SIZE]
-                [--patience PATIENCE] [--log_every_n_steps LOG_EVERY_N_STEPS] [--tb_dir TB_DIR] [--tb_name TB_NAME] [--neptune_project NEPTUNE_PROJECT] [--neptune_tags NEPTUNE_TAGS]
+                [--patience PATIENCE] [--log_every_n_steps LOG_EVERY_N_STEPS] [--tb_dir TB_DIR] [--tb_name TB_NAME] [--mlflow_experiment_name MLFLOW_EXPERIMENT_NAME] [--mlflow_tracking_uri MLFLOW_TRACKING_URI] [--mlflow_run_name MLFLOW_RUN_NAME] [--mlflow_tags MLFLOW_TAGS]
                 [--path_ico_right PATH_ICO_RIGHT] [--path_ico_left PATH_ICO_LEFT] [--layer LAYER] [--fs_path FS_PATH] [--num_images NUM_IMAGES] [--ico_lvl ICO_LVL]
                 [--crown_segmentation CROWN_SEGMENTATION] [--fdi FDI] [--csv_true_column CSV_TRUE_COLUMN] [--csv_tag_column CSV_TAG_COLUMN] [--csv_prediction_column CSV_PREDICTION_COLUMN]
                 [--eval_metric {F1,AUC}] [--target_layer TARGET_LAYER] [--fps FPS] [--out OUT]
@@ -130,10 +130,14 @@ Train:
                         Log every n steps
   --tb_dir TB_DIR       Tensorboard output dir
   --tb_name TB_NAME     Tensorboard experiment name
-  --neptune_project NEPTUNE_PROJECT
-                        Neptune project
-  --neptune_tags NEPTUNE_TAGS
-                        Neptune tags
+  --mlflow_experiment_name MLFLOW_EXPERIMENT_NAME
+                        MLflow experiment name (required to enable MLflow logging)
+  --mlflow_tracking_uri MLFLOW_TRACKING_URI
+                        MLflow tracking URI (overrides MLFLOW_TRACKING_URI env var)
+  --mlflow_run_name MLFLOW_RUN_NAME
+                        MLflow run name
+  --mlflow_tags MLFLOW_TAGS
+                        MLflow tags as key=value pairs
   --path_ico_right PATH_ICO_RIGHT
                         Path to ico right (default: ../3DObject/sphere_f327680_v163842.vtk)
   --path_ico_left PATH_ICO_LEFT
