@@ -2,12 +2,31 @@ from lightning.pytorch.callbacks import Callback
 import torchvision
 import torch
 import matplotlib.pyplot as plt
+import matplotlib.figure as mpl_figure
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
 
 # This file contains custom callbacks for logging and visualizing images during training within a PyTorch Lightning-based deep learning workflow
+
+
+def _log_figure(trainer, fig, name):
+    """Upload a matplotlib or plotly figure to the active MLflow logger.
+
+    `name` follows the Neptune-style namespace convention (e.g. "images/surf"); the
+    appropriate extension is appended automatically based on the figure type.
+    """
+    logger = getattr(trainer, "logger", None)
+    if logger is None or not hasattr(logger, "experiment") or not hasattr(logger, "run_id"):
+        return
+    if isinstance(fig, go.Figure):
+        artifact_file = f"{name}.html"
+    elif isinstance(fig, (mpl_figure.Figure,)):
+        artifact_file = f"{name}.png"
+    else:
+        artifact_file = f"{name}.png"
+    logger.experiment.log_figure(run_id=logger.run_id, figure=fig, artifact_file=artifact_file)
 
 #####################################################################################################################################################################################
 #                                                                                                                                                                                   #
@@ -172,13 +191,13 @@ class SaxiImageLoggerTensorboardSegmentation(Callback):
 
 #####################################################################################################################################################################################
 #                                                                                                                                                                                   #
-#                                                                                         Neptune                                                                                   #
+#                                                                                          MLflow                                                                                   #
 #                                                                                                                                                                                   #
 #####################################################################################################################################################################################
 
 
-class SaxiImageLoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiImageLoggerMLflow(Callback):
+    # Logs rendered surface images to MLflow as artifacts.
     def __init__(self, num_images=12, log_steps=10):
         self.log_steps = log_steps
         self.num_images = num_images
@@ -203,18 +222,18 @@ class SaxiImageLoggerNeptune(Callback):
                 grid_X = torchvision.utils.make_grid(X[0, 0:num_images, 0:3, :, :])#Grab the first image, RGB channels only, X, Y. The time dimension is on dim=1
                 fig = plt.figure(figsize=(7, 9))
                 ax = plt.imshow(grid_X.permute(1, 2, 0).cpu().numpy())
-                trainer.logger.experiment["images/x"].upload(fig)
-                plt.close()
-                
+                _log_figure(trainer, fig, "images/x")
+                plt.close(fig)
+
                 grid_X = torchvision.utils.make_grid(X[0, 0:num_images, 3:, :, :])#Grab the depth map. The time dimension is
                 fig = plt.figure(figsize=(7, 9))
                 ax = plt.imshow(grid_X.permute(1, 2, 0).cpu().numpy())
-                trainer.logger.experiment["images/x_depth"].upload(fig)
-                plt.close()
+                _log_figure(trainer, fig, "images/x_depth")
+                plt.close(fig)
 
 
-class SaxiImageLoggerNeptune_Ico_fs(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiImageLoggerMLflow_Ico_fs(Callback):
+    # Logs icosahedral feature images to MLflow as artifacts.
     def __init__(self, num_images=12, log_steps=10):
         self.log_steps = log_steps
         self.num_images = num_images
@@ -241,8 +260,8 @@ class SaxiImageLoggerNeptune_Ico_fs(Callback):
                 XL = XL.cpu().numpy()
                 fig = self.create_figure(XL)
                 # fig = self.create_figure(XL[0, 0:num_images, 0, :, :], XL[0, 0:num_images, 1, :, :], XL[0, 0:num_images, 2, :, :], XL[0, 0:num_images, 3, :, :])
-                trainer.logger.experiment["images/features"].upload(fig)
-          
+                _log_figure(trainer, fig, "images/features")
+
 
     def create_figure(self, XL):
         nb_features = XL.shape[2]
@@ -348,8 +367,8 @@ class SaxiImageLoggerNeptune_Ico_fs(Callback):
 
 
 
-class SaxiImageLoggerNeptune_Ico_one_feature(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiImageLoggerMLflow_Ico_one_feature(Callback):
+    # Logs a single icosahedral feature image to MLflow as an artifact.
     def __init__(self, num_images=12, log_steps=10):
         self.log_steps = log_steps
         self.num_images = num_images
@@ -375,7 +394,7 @@ class SaxiImageLoggerNeptune_Ico_one_feature(Callback):
                 XL, PFL = pl_module.render(VL, FL, VFL, FFL)
                 XL = XL.cpu().numpy()
                 fig = self.create_figure(XL[0, 0:num_images, 0, :, :])
-                trainer.logger.experiment["images/features"].upload(fig)
+                _log_figure(trainer, fig, "images/features")
           
 
     def create_figure(self, image_data1):
@@ -459,8 +478,8 @@ class SaxiImageLoggerNeptune_Ico_one_feature(Callback):
         return fig
 
 
-class SaxiAELoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiAELoggerMLflow(Callback):
+    # Logs autoencoder pointcloud reconstructions to MLflow as artifacts.
     def __init__(self, num_surf=1, log_steps=10):
         self.log_steps = log_steps
         self.num_surf = num_surf
@@ -498,7 +517,7 @@ class SaxiAELoggerNeptune(Callback):
                 
                 
                 fig = self.plot_pointclouds(X_start_samples[0].cpu().numpy(), X_samples[0].cpu().numpy(), X_samples_hat[0].detach().cpu().numpy())
-                trainer.logger.experiment["images/surf"].upload(fig)
+                _log_figure(trainer, fig, "images/surf")
 
     
     def plot_pointclouds(self, X, X_samples, X_hat):
@@ -548,8 +567,8 @@ class SaxiAELoggerNeptune(Callback):
 
         return fig
     
-class SaxiDenoiseUnetLoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiDenoiseUnetLoggerMLflow(Callback):
+    # Logs denoising U-Net pointcloud reconstructions to MLflow as artifacts.
     def __init__(self, num_surf=12, log_steps=10, num_steps=10):
         self.log_steps = log_steps
         self.num_surf = num_surf
@@ -578,7 +597,7 @@ class SaxiDenoiseUnetLoggerNeptune(Callback):
                 X_hat = pl_module(X_noised)
                 
                 fig = self.plot_pointclouds(X.cpu().numpy(), X_noised.cpu().numpy(), X_hat.cpu().numpy())
-                trainer.logger.experiment["images/surf"].upload(fig)
+                _log_figure(trainer, fig, "images/surf")
 
     def plot_diffusion(self, X):
         num_surf = len(X)
@@ -653,8 +672,8 @@ class SaxiDenoiseUnetLoggerNeptune(Callback):
 
         return fig
 
-class SaxiDDPMLoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiDDPMLoggerMLflow(Callback):
+    # Logs DDPM pointcloud samples and intermediates to MLflow as artifacts.
     def __init__(self, num_surf=5, log_steps=10, num_steps=5):
         self.log_steps = log_steps
         self.num_surf = num_surf
@@ -679,7 +698,7 @@ class SaxiDDPMLoggerNeptune(Callback):
                     X = batch
                 
                 fig = self.plot_diffusion(X[0:self.num_surf].cpu().numpy())
-                trainer.logger.experiment["images/batch"].upload(fig)
+                _log_figure(trainer, fig, "images/batch")
                 
 
                 # V, F = batch
@@ -698,7 +717,7 @@ class SaxiDDPMLoggerNeptune(Callback):
                     pc, intermediates = pl_module.sample(intermediate_steps=self.num_steps)
                     
                     fig = self.plot_diffusion(torch.cat(intermediates, dim=0).cpu().numpy())
-                    trainer.logger.experiment["images/intermediates"].upload(fig)
+                    _log_figure(trainer, fig, "images/intermediates")
 
                 elif hasattr(pl_module, 'inferer'):
                     
@@ -720,7 +739,7 @@ class SaxiDDPMLoggerNeptune(Callback):
                     )
 
                     fig = self.plot_diffusion(torch.cat(intermediates, dim=0).cpu().numpy())
-                    trainer.logger.experiment["images/intermediates"].upload(fig)
+                    _log_figure(trainer, fig, "images/intermediates")
 
                 else:
 
@@ -744,10 +763,10 @@ class SaxiDDPMLoggerNeptune(Callback):
                     
                     fig = self.plot_diffusion(torch.cat(X_gen, dim=0).cpu().numpy())
                     # fig = self.plot_pointclouds(X.cpu().numpy(), X_noised.cpu().numpy(), X_hat.cpu().numpy())
-                    trainer.logger.experiment["images/prev_sample"].upload(fig)
+                    _log_figure(trainer, fig, "images/prev_sample")
 
                     fig = self.plot_diffusion(torch.cat(X_orig_sample, dim=0).cpu().numpy())
-                    trainer.logger.experiment["images/pred_original_sample"].upload(fig)
+                    _log_figure(trainer, fig, "images/pred_original_sample")
 
     def plot_diffusion(self, X):
         num_surf = len(X)
@@ -823,8 +842,8 @@ class SaxiDDPMLoggerNeptune(Callback):
         return fig
     
 
-class SaxiClassLoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiClassLoggerMLflow(Callback):
+    # Logs classifier pointcloud samples to MLflow as artifacts.
     def __init__(self, num_surf=1, log_steps=10):
         self.log_steps = log_steps
         self.num_surf = num_surf
@@ -843,13 +862,13 @@ class SaxiClassLoggerNeptune(Callback):
                 X_mesh = pl_module.create_mesh(V, F)                
 
                 X_samples = pl_module.sample_points_from_meshes(X_mesh, self.num_samples)
-                
-                fig = self.plot_pointclouds(X_samples[0].cpu().numpy())
-                trainer.logger.experiment["images/surf"].upload(fig)
 
-    
+                fig = self.plot_pointclouds(X_samples[0].cpu().numpy())
+                _log_figure(trainer, fig, "images/surf")
+
+
     def plot_pointclouds(self, X):
-    
+
 
         fig = make_subplots(
             rows=1, cols=1,
@@ -871,11 +890,11 @@ class SaxiClassLoggerNeptune(Callback):
         fig.update_layout(height=600, width=600, title_text="Side-by-Side 3D Scatter Plots")
 
         return fig
-    
 
 
-class SaxiClassMHAFBLoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+
+class SaxiClassMHAFBLoggerMLflow(Callback):
+    # Logs MHA-FB classifier pointcloud and framebuffer images to MLflow as artifacts.
     def __init__(self, num_surf=1, log_steps=10):
         self.log_steps = log_steps
         self.num_surf = num_surf
@@ -892,18 +911,18 @@ class SaxiClassMHAFBLoggerNeptune(Callback):
                 X_mesh = pl_module.create_mesh(V, F, CN)
 
                 X_samples = pl_module.sample_points_from_meshes(X_mesh, self.num_samples)
-                
+
                 fig = self.plot_pointclouds(X_samples[0].cpu().numpy())
-                trainer.logger.experiment["images/surf"].upload(fig)
+                _log_figure(trainer, fig, "images/surf")
 
                 X_fb, X_PF = pl_module.render(X_mesh)
-                
+
                 X_img = X_fb[0,:,0:3].permute(0,2,3,1).squeeze().cpu().numpy()
                 X_img = (X_img - X_img.min()) / (X_img.max() - X_img.min())*255
                 X_img_zbuf = X_fb[0,:,3:4].permute(0,2,3,1).squeeze().cpu().numpy()
 
                 fig = self.create_figure(X_img[0:self.num_images], X_img_zbuf[0:self.num_images])
-                trainer.logger.experiment["images/fb"].upload(fig)
+                _log_figure(trainer, fig, "images/fb")
 
     
     def plot_pointclouds(self, X):
@@ -1016,8 +1035,8 @@ class SaxiClassMHAFBLoggerNeptune(Callback):
     
 
 
-class SaxiClassRingLoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiClassRingLoggerMLflow(Callback):
+    # Logs ring-classifier pointcloud and framebuffer images to MLflow as artifacts.
     def __init__(self, num_surf=1, log_steps=10):
         self.log_steps = log_steps
         self.num_surf = num_surf
@@ -1034,18 +1053,18 @@ class SaxiClassRingLoggerNeptune(Callback):
                 X_mesh = pl_module.create_mesh(V, F, CN)
 
                 X_samples = pl_module.sample_points_from_meshes(X_mesh, self.num_samples)
-                
+
                 fig = self.plot_pointclouds(X_samples[0].cpu().numpy())
-                trainer.logger.experiment["images/surf"].upload(fig)
+                _log_figure(trainer, fig, "images/surf")
 
                 X_fb, X_PF = pl_module.render(V, F, CN)
-                
+
                 X_img = X_fb[0,:,0:3].permute(0,2,3,1).squeeze().cpu().numpy()
                 X_img = (X_img - X_img.min()) / (X_img.max() - X_img.min())*255
                 X_img_zbuf = X_fb[0,:,3:4].permute(0,2,3,1).squeeze().cpu().numpy()
 
                 fig = self.create_figure(X_img[0:self.num_images], X_img_zbuf[0:self.num_images])
-                trainer.logger.experiment["images/fb"].upload(fig)
+                _log_figure(trainer, fig, "images/fb")
 
     
     def plot_pointclouds(self, X):
@@ -1157,15 +1176,15 @@ class SaxiClassRingLoggerNeptune(Callback):
         return fig
 
 
-class SaxiNeRFLoggerNeptune(Callback):
-    # This callback logs images for visualization during training, with the ability to log images to the Neptune logging system for easy monitoring and analysis
+class SaxiNeRFLoggerMLflow(Callback):
+    # Logs NeRF renders to MLflow as artifacts.
     def __init__(self, log_steps = 10, *args, **kwargs):
         self.log_steps = log_steps
 
     @staticmethod
     def add_logger_specific_args(parent_parser):
         logger_group = parent_parser.add_argument_group(title='NeRF Logger')
-        logger_group.add_argument('--log_steps', type=int, help='Log steps for the callback (neptune)', default=50)
+        logger_group.add_argument('--log_steps', type=int, help='Log steps for the callback', default=50)
         return parent_parser
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx): 
@@ -1208,7 +1227,7 @@ class SaxiNeRFLoggerNeptune(Callback):
                 
 
                 fig = self.create_figure(images.cpu().numpy()*255, rgb, depth, acc)
-                trainer.logger.experiment["images/NeRF"].upload(fig)
+                _log_figure(trainer, fig, "images/NeRF")
 
     def create_figure(self, images, rgb, depth, acc):
         fig = make_subplots(rows=2, cols=3, subplot_titles=('Images', '', '', 'RGB', 'Depth', 'Acc'))

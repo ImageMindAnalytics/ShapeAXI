@@ -424,9 +424,10 @@ def cml():
     logger_group.add_argument('--log_every_n_steps', type=int, help='Log every n steps', default=10)    
     logger_group.add_argument('--tb_dir', type=str, help='Tensorboard output dir', default=None)
     logger_group.add_argument('--tb_name', type=str, help='Tensorboard experiment name', default="tensorboard")
-    logger_group.add_argument('--neptune_project', type=str, help='Neptune project', default=None)
-    logger_group.add_argument('--neptune_tags', type=str, help='Neptune tags', default=None)
-    logger_group.add_argument('--neptune_token', type=str, help='Neptune token', default=None)
+    logger_group.add_argument('--mlflow_experiment_name', type=str, help='MLflow experiment name', default=None)
+    logger_group.add_argument('--mlflow_tracking_uri', type=str, help='MLflow tracking URI', default=None)
+    logger_group.add_argument('--mlflow_run_name', type=str, help='MLflow run name', default=None)
+    logger_group.add_argument('--mlflow_tags', type=str, nargs='+', help='MLflow tags as key=value pairs', default=None)
     logger_group.add_argument('--num_images', type=int, help='Number of images to log', default=12)
 
     initial_args, unknownargs = parser.parse_known_args()

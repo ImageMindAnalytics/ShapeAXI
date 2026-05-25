@@ -18,9 +18,9 @@ from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.strategies import DDPStrategy
 
-from lightning.pytorch.loggers import NeptuneLogger
+from lightning.pytorch.loggers import MLFlowLogger
 
-from shapeaxi import saxi_dataset 
+from shapeaxi import saxi_dataset
 from shapeaxi.saxi_transforms import *
 from shapeaxi import saxi_nets_lightning
 from shapeaxi import saxi_logger
@@ -37,23 +37,28 @@ def Saxi_train(args, callbacks):
     args_d = vars(args)
 
     data = DATAMODULE(**args_d)
-    
+
     SAXINETS = getattr(saxi_nets_lightning, args.nn)
     model = SAXINETS(**args_d)
-    
-    logger_neptune = None
-    if args.neptune_tags:
-        logger_neptune = NeptuneLogger(
-            project='ImageMindAnalytics/saxi',
-            tags=args.neptune_tags,
-            api_key=os.environ['NEPTUNE_API_TOKEN'],
-            log_model_checkpoints=False
-        )
-        LOGGER = getattr(saxi_logger, args.logger)    
-        image_logger = LOGGER(**args_d)
-        callbacks.append(image_logger)
 
-    trainer = Trainer(logger=logger_neptune, 
+    logger_mlflow = None
+    if args.mlflow_experiment_name:
+        tags = None
+        if args.mlflow_tags:
+            tags = {t.split('=', 1)[0]: t.split('=', 1)[1] if '=' in t else '' for t in args.mlflow_tags}
+        logger_mlflow = MLFlowLogger(
+            experiment_name=args.mlflow_experiment_name,
+            tracking_uri=args.mlflow_tracking_uri or os.environ.get('MLFLOW_TRACKING_URI'),
+            run_name=args.mlflow_run_name,
+            tags=tags,
+            log_model=False,
+        )
+        if args.logger:
+            LOGGER = getattr(saxi_logger, args.logger)
+            image_logger = LOGGER(**args_d)
+            callbacks.append(image_logger)
+
+    trainer = Trainer(logger=logger_mlflow,
         max_epochs=args.epochs, 
         log_every_n_steps=args.log_every_n_steps,
         callbacks=callbacks,devices=torch.cuda.device_count(), 
@@ -112,9 +117,10 @@ def get_argparse():
     logger_group.add_argument('--logger', type=str, help='Logger class name', default=None)
     logger_group.add_argument('--log_every_n_steps', type=int, help='Log every n steps during training', default=10)    
     
-    logger_group.add_argument('--neptune_project', type=str, help='Neptune project', default=None)
-    logger_group.add_argument('--neptune_tags', type=str, nargs='+', help='Neptune tags', default=None)
-    logger_group.add_argument('--neptune_token', type=str, help='Neptune token', default=None)
+    logger_group.add_argument('--mlflow_experiment_name', type=str, help='MLflow experiment name (required to enable MLflow logging)', default=None)
+    logger_group.add_argument('--mlflow_tracking_uri', type=str, help='MLflow tracking URI (overrides MLFLOW_TRACKING_URI env var)', default=None)
+    logger_group.add_argument('--mlflow_run_name', type=str, help='MLflow run name', default=None)
+    logger_group.add_argument('--mlflow_tags', type=str, nargs='+', help='MLflow tags as key=value pairs', default=None)
 
     #Freesurfer
     # fs_group = parser.add_argument_group('Freesurfer')
@@ -123,12 +129,11 @@ def get_argparse():
     return parser
 
 
-if __name__ == '__main__':
+def cml():
     parser = get_argparse()
     initial_args, unknownargs = parser.parse_known_args()
 
     if initial_args.nn is not None:
-        
         model_args = getattr(saxi_nets_lightning, initial_args.nn)
         parser = model_args.add_model_specific_args(parser)
 
@@ -142,3 +147,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main(args)
+
+
+if __name__ == '__main__':
+    cml()

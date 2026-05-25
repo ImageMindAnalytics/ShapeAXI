@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-present FlorianDAVAUX <91245912+FlorianDAVAUX@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2023-present Juan Prieto <juan@imagemindanalytics.dev>
 #
 # SPDX-License-Identifier: MIT
-__version__ = "1.0.8"
+__version__ = "2.0.0"
