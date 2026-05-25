@@ -1,0 +1,47 @@
+{
+  "title": "ShapeAXI: Shape Analysis Exploration and Interpretability",
+  "description": "ShapeAXI is a deep-learning framework for shape analysis, classification, segmentation, regression, and interpretability of 3D surfaces (e.g. anatomical meshes). It bundles training, prediction, evaluation, and explainability (Grad-CAM) command-line tools built on PyTorch Lightning, PyTorch3D, MONAI, and VTK.",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "keywords": [
+    "shape analysis",
+    "deep learning",
+    "PyTorch",
+    "PyTorch Lightning",
+    "PyTorch3D",
+    "interpretability",
+    "Grad-CAM",
+    "mesh classification",
+    "mesh segmentation",
+    "medical imaging"
+  ],
+  "creators": [
+    {
+      "name": "Prieto, Juan Carlos",
+      "affiliation": "University of North Carolina at Chapel Hill",
+      "orcid": "0000-0002-3778-9098"
+    },
+    {
+      "name": "Davaux, Florian",
+      "affiliation": "CPE Lyon"
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/ImageMindAnalytics/ShapeAXI",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ],
+  "grants": [{
+    "id": "R01EB021391"
+  },
+  {
+    "id": "R01DE024450"
+  },
+  {
+    "id": "R01DE024450"
+  }
+]
+}
