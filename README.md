@@ -1,5 +1,7 @@
 <img src="doc/images/Logo_ShapeAXI.png" alt="ShapeAXI Logo" width="200" height="200">
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20386640.svg)](https://doi.org/10.5281/zenodo.20386640)
+
 # ShapeAXI
 
 Welcome to the official documentation for **ShapeAXI**. Dive into the cutting-edge framework designed for comprehensive shape analysis.  
